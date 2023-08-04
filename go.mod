@@ -3,7 +3,7 @@ module github.com/magodo/aztfq
 go 1.20
 
 require (
-	github.com/magodo/azure-rest-api-bridge v0.0.0-20230802025001-424d89794f83
+	github.com/magodo/azure-rest-api-bridge v0.0.0-20230804073354-26cda17f63c1
 	github.com/stretchr/testify v1.8.1
 )
 
