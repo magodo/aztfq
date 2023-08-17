@@ -10,12 +10,9 @@ import (
 	"github.com/magodo/azure-rest-api-bridge/ctrl"
 )
 
-//go:embed output.json
-var OutputRaw []byte
-
-func BuildLookupTable() (LookupTable, error) {
+func BuildLookupTable(input []byte) (LookupTable, error) {
 	var output map[string]ctrl.ModelMap
-	if err := json.Unmarshal(OutputRaw, &output); err != nil {
+	if err := json.Unmarshal(input, &output); err != nil {
 		return LookupTable{}, err
 	}
 	return buildLookupTable(output)
@@ -113,7 +110,8 @@ func azureResourceTypeFromPath(path string) (string, bool) {
 		rts = append(rts, rtSegs[i])
 	}
 
-	return strings.ToUpper(strings.Join(rts, "/")), true
+	rt := strings.ToUpper(strings.Join(rts, "/"))
+	return rt, rt != ""
 }
 
 type TFResult struct {

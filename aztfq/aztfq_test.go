@@ -15,6 +15,15 @@ func TestAzureResourceTypeFromPath(t *testing.T) {
 		expectOK bool
 	}{
 		{
+			path:     "foo",
+			expectOK: false,
+		},
+		{
+			path:     "/providers/",
+			expectRT: "",
+			expectOK: false,
+		},
+		{
 			path:     "/providers/Foo.Bar",
 			expectRT: "FOO.BAR",
 			expectOK: true,
