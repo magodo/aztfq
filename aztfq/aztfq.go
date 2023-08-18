@@ -31,7 +31,7 @@ func buildLookupTable(output map[string]ctrl.ModelMap) (LookupTable, error) {
 				if len(tks) != 2 {
 					return nil, fmt.Errorf("the length of JSON pointer for %s: %s expects to be 2, got=%d", tfRT, tfPropAddr, len(tks))
 				}
-				azureRT, ok := azureResourceTypeFromPath(tks[1])
+				azureRT, ok := AzureResourceTypeFromPath(tks[1])
 				if !ok {
 					continue
 				}
@@ -91,7 +91,7 @@ func buildLookupTable(output map[string]ctrl.ModelMap) (LookupTable, error) {
 	return t, nil
 }
 
-func azureResourceTypeFromPath(path string) (string, bool) {
+func AzureResourceTypeFromPath(path string) (string, bool) {
 	idx := strings.LastIndex(path, "/providers/")
 	if idx == -1 {
 		return "", false

@@ -51,7 +51,7 @@ func TestAzureResourceTypeFromPath(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.path, func(t *testing.T) {
-			rt, ok := azureResourceTypeFromPath(tt.path)
+			rt, ok := AzureResourceTypeFromPath(tt.path)
 			require.Equal(t, tt.expectOK, ok)
 			if ok {
 				require.Equal(t, tt.expectRT, rt)
