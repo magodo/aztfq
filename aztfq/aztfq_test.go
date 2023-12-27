@@ -104,7 +104,10 @@ func TestBuildLookupTable(t *testing.T) {
 }`
 	var output map[string]ctrl.ModelMap
 	require.NoError(t, json.Unmarshal([]byte(input), &output))
-	table, err := buildLookupTable(output, false)
+	opt := Option{
+		ImplicitArrayIndex: false,
+	}
+	table, err := buildLookupTable(output, opt)
 	require.NoError(t, err)
 	require.Equal(t, LookupTable{
 		"MICROSOFT.FOO/FOOS": map[string]map[string][]TFResult{
@@ -196,37 +199,7 @@ func TestBuildLookupTable(t *testing.T) {
 
 func TestBuildLookupTable_removeArraySymbol(t *testing.T) {
 	input := `{
-	"azurerm_foo": {
-	  "/p1": [{
-	   	"addr": "properties.p1",
-		"root_model": {
-		  "path_ref": "foo.json#/paths/~1%7BresourceId%7D~1providers~1Microsoft.Foo~1foos~1%7BfooName%7D",
-		  "version": "2020-01-01"
-		}
-	  }],
-	  "/p2": [{
-	   	"addr": "properties.p2",
-		"root_model": {
-		  "path_ref": "foo.json#/paths/~1%7BresourceId%7D~1providers~1Microsoft.Foo~1foos~1%7BfooName%7D~1settings~1%7BsettingName%7D",
-		  "version": "2020-01-02"
-		}
-	  }]
-	},
 	"azurerm_bar": {
-	  "/p1": [{
-	   	"addr": "properties.p1",
-		"root_model": {
-		  "path_ref": "bar.json#/paths/~1%7BresourceId%7D~1providers~1Microsoft.Bar~1bars~1%7BbarName%7D",
-		  "version": "2020-02-01"
-		}
-	  }],
-	  "/p2": [{
-	   	"addr": "properties.p2",
-		"root_model": {
-		  "path_ref": "bar.json#/paths/~1%7BresourceId%7D~1providers~1Microsoft.Bar~1bars~1%7BbarName%7D~1settings~1%7BsettingName%7D",
-		  "version": "2020-02-02"
-		}
-	  }],
 	  "/array": [{
 	   	"addr": "properties.array.*.test",
 		"root_model": {
@@ -238,71 +211,14 @@ func TestBuildLookupTable_removeArraySymbol(t *testing.T) {
 }`
 	var output map[string]ctrl.ModelMap
 	require.NoError(t, json.Unmarshal([]byte(input), &output))
-	table, err := buildLookupTable(output, true)
+	opt := Option{
+		ImplicitArrayIndex: true,
+	}
+	table, err := buildLookupTable(output, opt)
 	require.NoError(t, err)
 	require.Equal(t, LookupTable{
-		"MICROSOFT.FOO/FOOS": map[string]map[string][]TFResult{
-			"": {
-				"properties.p1": {
-					{
-						ResourceType: "azurerm_foo",
-						PropertyAddr: "/p1",
-					},
-				},
-			},
-			"2020-01-01": {
-				"properties.p1": {
-					{
-						ResourceType: "azurerm_foo",
-						PropertyAddr: "/p1",
-					},
-				},
-			},
-		},
-		"MICROSOFT.FOO/FOOS/SETTINGS": map[string]map[string][]TFResult{
-			"": {
-				"properties.p2": {
-					{
-						ResourceType: "azurerm_foo",
-						PropertyAddr: "/p2",
-					},
-				},
-			},
-			"2020-01-02": {
-				"properties.p2": {
-					{
-						ResourceType: "azurerm_foo",
-						PropertyAddr: "/p2",
-					},
-				},
-			},
-		},
-		"MICROSOFT.BAR/BARS": map[string]map[string][]TFResult{
-			"": {
-				"properties.p1": {
-					{
-						ResourceType: "azurerm_bar",
-						PropertyAddr: "/p1",
-					},
-				},
-			},
-			"2020-02-01": {
-				"properties.p1": {
-					{
-						ResourceType: "azurerm_bar",
-						PropertyAddr: "/p1",
-					},
-				},
-			},
-		},
 		"MICROSOFT.BAR/BARS/SETTINGS": map[string]map[string][]TFResult{
 			"": {
-				"properties.p2": {
-					{
-						ResourceType: "azurerm_bar",
-						PropertyAddr: "/p2",
-					},
-				},
 				"properties.array.test": {
 					{
 						ResourceType: "azurerm_bar",
@@ -311,12 +227,6 @@ func TestBuildLookupTable_removeArraySymbol(t *testing.T) {
 				},
 			},
 			"2020-02-02": {
-				"properties.p2": {
-					{
-						ResourceType: "azurerm_bar",
-						PropertyAddr: "/p2",
-					},
-				},
 				"properties.array.test": {
 					{
 						ResourceType: "azurerm_bar",

@@ -11,15 +11,20 @@ import (
 	"github.com/magodo/azure-rest-api-bridge/mockserver/swagger"
 )
 
-func BuildLookupTable(input []byte, removeArraySymbol bool) (LookupTable, error) {
+type Option struct {
+	// ImplicitArrayIndex makes the array index to be implicit, e.g. "foos.*.id" -> "foos.id".
+	ImplicitArrayIndex bool
+}
+
+func BuildLookupTable(input []byte, opt Option) (LookupTable, error) {
 	var output map[string]ctrl.ModelMap
 	if err := json.Unmarshal(input, &output); err != nil {
 		return LookupTable{}, err
 	}
-	return buildLookupTable(output, removeArraySymbol)
+	return buildLookupTable(output, opt)
 }
 
-func buildLookupTable(output map[string]ctrl.ModelMap, removeArraySymbol bool) (LookupTable, error) {
+func buildLookupTable(output map[string]ctrl.ModelMap, opt Option) (LookupTable, error) {
 	t := LookupTable{}
 	for tfRT, mm := range output {
 		for tfPropAddr, apiPoses := range mm {
@@ -55,7 +60,7 @@ func buildLookupTable(output map[string]ctrl.ModelMap, removeArraySymbol bool) (
 				}
 
 				apiAddr := apiPos.Addr
-				if removeArraySymbol {
+				if opt.ImplicitArrayIndex {
 					apiAddr = removeArrayWildcard(apiAddr)
 				}
 				apiPropAddr := apiAddr.String()
