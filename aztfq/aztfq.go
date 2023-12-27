@@ -56,14 +56,7 @@ func buildLookupTable(output map[string]ctrl.ModelMap, removeArraySymbol bool) (
 
 				apiAddr := apiPos.Addr
 				if removeArraySymbol {
-					newApiAddr := make(swagger.PropertyAddr, 0)
-					for _, step := range apiAddr {
-						if step.Type != swagger.PropertyAddrStepTypeIndex {
-							newApiAddr = append(newApiAddr, step)
-						}
-					}
-					apiAddr = newApiAddr
-
+					apiAddr = removeArrayWildcard(apiAddr)
 				}
 				apiPropAddr := apiAddr.String()
 
@@ -102,6 +95,17 @@ func buildLookupTable(output map[string]ctrl.ModelMap, removeArraySymbol bool) (
 		}
 	}
 	return t, nil
+}
+
+func removeArrayWildcard(apiAddr swagger.PropertyAddr) swagger.PropertyAddr {
+	newApiAddr := make(swagger.PropertyAddr, 0)
+	for _, step := range apiAddr {
+		if step.Type != swagger.PropertyAddrStepTypeIndex {
+			newApiAddr = append(newApiAddr, step)
+		}
+	}
+
+	return newApiAddr
 }
 
 func azureResourceTypeFromPath(path string) (string, bool) {
