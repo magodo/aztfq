@@ -61,7 +61,7 @@ func buildLookupTable(output map[string]ctrl.ModelMap, opt Option) (LookupTable,
 
 				apiAddr := apiPos.Addr
 				if opt.ImplicitArrayIndex {
-					apiAddr = removeArrayWildcard(apiAddr)
+					apiAddr = removeArrayIndex(apiAddr)
 				}
 				apiPropAddr := apiAddr.String()
 
@@ -102,7 +102,7 @@ func buildLookupTable(output map[string]ctrl.ModelMap, opt Option) (LookupTable,
 	return t, nil
 }
 
-func removeArrayWildcard(apiAddr swagger.PropertyAddr) swagger.PropertyAddr {
+func removeArrayIndex(apiAddr swagger.PropertyAddr) swagger.PropertyAddr {
 	newApiAddr := make(swagger.PropertyAddr, 0)
 	for _, step := range apiAddr {
 		if step.Type != swagger.PropertyAddrStepTypeIndex {

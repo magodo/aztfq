@@ -197,7 +197,7 @@ func TestBuildLookupTable(t *testing.T) {
 	}, table)
 }
 
-func TestBuildLookupTable_removeArraySymbol(t *testing.T) {
+func TestBuildLookupTable_removeArrayIndex(t *testing.T) {
 	input := `{
 	"azurerm_bar": {
 	  "/array": [{
