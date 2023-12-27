@@ -92,12 +92,21 @@ func TestBuildLookupTable(t *testing.T) {
 		  "path_ref": "bar.json#/paths/~1%7BresourceId%7D~1providers~1Microsoft.Bar~1bars~1%7BbarName%7D~1settings~1%7BsettingName%7D",
 		  "version": "2020-02-02"
 		}
+	  }],
+	  "/array": [{
+	   	"addr": "properties.array.*.test",
+		"root_model": {
+		  "path_ref": "bar.json#/paths/~1%7BresourceId%7D~1providers~1Microsoft.Bar~1bars~1%7BbarName%7D~1settings~1%7BsettingName%7Darray",
+		  "version": "2020-02-02"
+		}
 	  }]
 	}
 }`
 	var output map[string]ctrl.ModelMap
 	require.NoError(t, json.Unmarshal([]byte(input), &output))
-	table, err := buildLookupTable(output)
+	table, err := buildLookupTable(output, &Option{
+		ImplicitArrayIndex: false,
+	})
 	require.NoError(t, err)
 	require.Equal(t, LookupTable{
 		"MICROSOFT.FOO/FOOS": map[string]map[string][]TFResult{
@@ -162,12 +171,91 @@ func TestBuildLookupTable(t *testing.T) {
 						PropertyAddr: "/p2",
 					},
 				},
+				"properties.array.*.test": {
+					{
+						ResourceType: "azurerm_bar",
+						PropertyAddr: "/array",
+					},
+				},
 			},
 			"2020-02-02": {
 				"properties.p2": {
 					{
 						ResourceType: "azurerm_bar",
 						PropertyAddr: "/p2",
+					},
+				},
+				"properties.array.*.test": {
+					{
+						ResourceType: "azurerm_bar",
+						PropertyAddr: "/array",
+					},
+				},
+			},
+		},
+	}, table)
+}
+
+func TestBuildLookupTable_ImplicitArrayIndex(t *testing.T) {
+	input := `{
+	"azurerm_bar": {
+	  "/array": [{
+	   	"addr": "properties.array.*.test",
+		"root_model": {
+		  "path_ref": "bar.json#/paths/~1%7BresourceId%7D~1providers~1Microsoft.Bar~1bars~1%7BbarName%7D~1settings~1%7BsettingName%7Darray",
+		  "version": "2020-02-02"
+		}
+	  }]
+	}
+}`
+	var output map[string]ctrl.ModelMap
+	require.NoError(t, json.Unmarshal([]byte(input), &output))
+	table, err := buildLookupTable(output, &Option{
+		ImplicitArrayIndex: true,
+	},
+	)
+	require.NoError(t, err)
+	require.Equal(t, LookupTable{
+		"MICROSOFT.BAR/BARS/SETTINGS": map[string]map[string][]TFResult{
+			"": {
+				"properties.array.test": {
+					{
+						ResourceType: "azurerm_bar",
+						PropertyAddr: "/array",
+					},
+				},
+			},
+			"2020-02-02": {
+				"properties.array.test": {
+					{
+						ResourceType: "azurerm_bar",
+						PropertyAddr: "/array",
+					},
+				},
+			},
+		},
+	}, table)
+
+	table, err = buildLookupTable(output, &Option{
+		ImplicitArrayIndex: false,
+	},
+	)
+	require.NoError(t, err)
+	require.Equal(t, LookupTable{
+		"MICROSOFT.BAR/BARS/SETTINGS": map[string]map[string][]TFResult{
+			"": {
+				"properties.array.*.test": {
+					{
+						ResourceType: "azurerm_bar",
+						PropertyAddr: "/array",
+					},
+				},
+			},
+			"2020-02-02": {
+				"properties.array.*.test": {
+					{
+						ResourceType: "azurerm_bar",
+						PropertyAddr: "/array",
 					},
 				},
 			},
