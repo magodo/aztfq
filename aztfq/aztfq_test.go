@@ -104,10 +104,9 @@ func TestBuildLookupTable(t *testing.T) {
 }`
 	var output map[string]ctrl.ModelMap
 	require.NoError(t, json.Unmarshal([]byte(input), &output))
-	opt := Option{
+	table, err := buildLookupTable(output, &Option{
 		ImplicitArrayIndex: false,
-	}
-	table, err := buildLookupTable(output, opt)
+	})
 	require.NoError(t, err)
 	require.Equal(t, LookupTable{
 		"MICROSOFT.FOO/FOOS": map[string]map[string][]TFResult{
@@ -197,7 +196,7 @@ func TestBuildLookupTable(t *testing.T) {
 	}, table)
 }
 
-func TestBuildLookupTable_removeArrayIndex(t *testing.T) {
+func TestBuildLookupTable_ImplicitArrayIndex(t *testing.T) {
 	input := `{
 	"azurerm_bar": {
 	  "/array": [{
@@ -211,10 +210,10 @@ func TestBuildLookupTable_removeArrayIndex(t *testing.T) {
 }`
 	var output map[string]ctrl.ModelMap
 	require.NoError(t, json.Unmarshal([]byte(input), &output))
-	opt := Option{
+	table, err := buildLookupTable(output, &Option{
 		ImplicitArrayIndex: true,
-	}
-	table, err := buildLookupTable(output, opt)
+	},
+	)
 	require.NoError(t, err)
 	require.Equal(t, LookupTable{
 		"MICROSOFT.BAR/BARS/SETTINGS": map[string]map[string][]TFResult{
@@ -228,6 +227,32 @@ func TestBuildLookupTable_removeArrayIndex(t *testing.T) {
 			},
 			"2020-02-02": {
 				"properties.array.test": {
+					{
+						ResourceType: "azurerm_bar",
+						PropertyAddr: "/array",
+					},
+				},
+			},
+		},
+	}, table)
+
+	table, err = buildLookupTable(output, &Option{
+		ImplicitArrayIndex: false,
+	},
+	)
+	require.NoError(t, err)
+	require.Equal(t, LookupTable{
+		"MICROSOFT.BAR/BARS/SETTINGS": map[string]map[string][]TFResult{
+			"": {
+				"properties.array.*.test": {
+					{
+						ResourceType: "azurerm_bar",
+						PropertyAddr: "/array",
+					},
+				},
+			},
+			"2020-02-02": {
+				"properties.array.*.test": {
 					{
 						ResourceType: "azurerm_bar",
 						PropertyAddr: "/array",

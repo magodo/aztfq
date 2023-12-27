@@ -16,7 +16,13 @@ type Option struct {
 	ImplicitArrayIndex bool
 }
 
-func BuildLookupTable(input []byte, opt Option) (LookupTable, error) {
+func BuildLookupTable(input []byte, opt *Option) (LookupTable, error) {
+	if opt == nil {
+		opt = &Option{
+			ImplicitArrayIndex: false,
+		}
+	}
+
 	var output map[string]ctrl.ModelMap
 	if err := json.Unmarshal(input, &output); err != nil {
 		return LookupTable{}, err
@@ -24,7 +30,7 @@ func BuildLookupTable(input []byte, opt Option) (LookupTable, error) {
 	return buildLookupTable(output, opt)
 }
 
-func buildLookupTable(output map[string]ctrl.ModelMap, opt Option) (LookupTable, error) {
+func buildLookupTable(output map[string]ctrl.ModelMap, opt *Option) (LookupTable, error) {
 	t := LookupTable{}
 	for tfRT, mm := range output {
 		for tfPropAddr, apiPoses := range mm {
