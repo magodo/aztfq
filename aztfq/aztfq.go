@@ -8,17 +8,18 @@ import (
 	"strings"
 
 	"github.com/magodo/azure-rest-api-bridge/ctrl"
+	"github.com/magodo/azure-rest-api-bridge/mockserver/swagger"
 )
 
-func BuildLookupTable(input []byte) (LookupTable, error) {
+func BuildLookupTable(input []byte, removeArraySymbol bool) (LookupTable, error) {
 	var output map[string]ctrl.ModelMap
 	if err := json.Unmarshal(input, &output); err != nil {
 		return LookupTable{}, err
 	}
-	return buildLookupTable(output)
+	return buildLookupTable(output, removeArraySymbol)
 }
 
-func buildLookupTable(output map[string]ctrl.ModelMap) (LookupTable, error) {
+func buildLookupTable(output map[string]ctrl.ModelMap, removeArraySymbol bool) (LookupTable, error) {
 	t := LookupTable{}
 	for tfRT, mm := range output {
 		for tfPropAddr, apiPoses := range mm {
@@ -53,7 +54,19 @@ func buildLookupTable(output map[string]ctrl.ModelMap) (LookupTable, error) {
 					tt[""] = tttAny
 				}
 
-				apiPropAddr := apiPos.Addr.String()
+				apiAddr := apiPos.Addr
+				if removeArraySymbol {
+					newApiAddr := make(swagger.PropertyAddr, 0)
+					for _, step := range apiAddr {
+						if step.Type != swagger.PropertyAddrStepTypeIndex {
+							newApiAddr = append(newApiAddr, step)
+						}
+					}
+					apiAddr = newApiAddr
+
+				}
+				apiPropAddr := apiAddr.String()
+
 				ttt[apiPropAddr] = append(ttt[apiPropAddr], TFResult{
 					ResourceType: tfRT,
 					PropertyAddr: tfPropAddr,
@@ -122,5 +135,5 @@ type TFResult struct {
 // LookupTable is the main lookup table used for querying.
 // key1: Azure resource type in upper case (e.g. MICROSOFT.COMPUTE/VIRTUALMACHINES)
 // key2: API version. Especially, there is always an empty string ("") key represents any api version.
-// key2: Azure resource property address (e.g. properties.object.key, values.*.id)
+// key3: Azure resource property address (e.g. properties.object.key, values.*.id)
 type LookupTable map[string]map[string]map[string][]TFResult
