@@ -13,7 +13,7 @@ import (
 func main() {
 	input := flag.String("i", "", "The output file of azure-rest-api-bridge")
 	rt := flag.String("rt", "", "Azure resource type (e.g. Microsoft.Compute/virtualMachines)")
-	prop := flag.String("prop", "", "Azure property address (e.g. properties.osProfile.computerName)")
+	prop := flag.String("prop", "", "Azure property address (e.g. properties/osProfile/computerName)")
 	version := flag.String("version", "", "Azure API version")
 	flag.Parse()
 	if err := realMain(*input, *rt, *version, *prop); err != nil {
@@ -27,7 +27,7 @@ func realMain(input, rt, version, prop string) error {
 	if err != nil {
 		return err
 	}
-	t, err := aztfq.BuildLookupTable(b)
+	t, err := aztfq.BuildLookupTable(b, nil)
 	if err != nil {
 		return err
 	}
